@@ -66,6 +66,7 @@ class Purge extends Base {
 
 		add_action( 'wp_update_comment_count', array( $this, 'purge_feeds' ) );
 
+		if ($this->conf(self::O_OPTM_UCSS)) add_action('edit_post', __NAMESPACE__ . '\Purge::purge_ucss');
 	}
 
 	/**
@@ -270,7 +271,11 @@ class Purge extends Base {
 		}
 		$post_id_or_url = untrailingslashit( $post_id_or_url );
 
-		Data::cls()->mark_as_expired( $post_id_or_url );
+		$existing_url_files = Data::cls()->mark_as_expired( $post_id_or_url, true );
+		if ( $existing_url_files ) {
+			// Add to UCSS Q
+			self::cls( 'UCSS' )->add_to_q($existing_url_files);
+		}
 	}
 
 	/**
